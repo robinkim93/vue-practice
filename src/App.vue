@@ -1,68 +1,59 @@
 <template>
   <div class="container">
     <h2>To-Do List</h2>
-    <form @submit.prevent="onSubmit">
-      <div class="d-flex">
-        <div class="flex-grow-1 mr-2">
-          <input
-            class="form-control"
-            type="text"
-            v-model="todo"
-            placeholder="Type New To-Do"
-          />
-        </div>
-        <div>
-          <button class="btn btn-primary" type="submit">Add</button>
-        </div>
-      </div>
-      <div v-show="hasError" class="errorMessage">
-        This Field Cannot Be Empty
-      </div>
-    </form>
-    <div class="card mt-2" v-for="todo in todos" :key="todo.id">
-      <div class="card-body p-2">
-        <div class="form-check">
+    <TodoSimpleForm @add-todo="addTodo" />
+
+    <div v-if="!todos.length" class="mt-2">추가된 Todo가 없습니다</div>
+    <div
+      class="card mt-2"
+      v-for="(todoList, index) in todos"
+      :key="todoList.id"
+    >
+      <div class="card-body p-2 d-flex align-items-center">
+        <div class="form-check flex-grow-1">
           <input
             type="checkbox"
             class="form-check-input"
-            v-model="todo.completed"
+            v-model="todoList.completed"
           />
-          <label class="form-check-label">{{ todo.subject }}</label>
+          <label
+            class="form-check-label"
+            :class="{ completedTodo: todoList.completed }"
+            >{{ todoList.subject }}</label
+          >
+        </div>
+        <div>
+          <button class="btn btn-danger btn-sm" @click="deleteTodo(index)">
+            Delete
+          </button>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import { reactive, ref } from "vue";
-export default {
-  setup() {
-    const hasError = ref(false);
-    const todo = ref("");
-    const todos = reactive([]);
+<script setup>
+import { reactive } from "vue";
+import TodoSimpleForm from "./components/TodoSimpleForm.vue";
 
-    const onSubmit = () => {
-      if (todo.value === "") {
-        hasError.value = true;
-      } else {
-        todos.push({
-          id: Date.now(),
-          subject: todo.value,
-          completed: false,
-        });
-        todo.value = "";
-        hasError.value = false;
-      }
-    };
+const todos = reactive([]);
 
-    return { todo, todos, hasError, onSubmit };
-  },
+const addTodo = (todo) => {
+  console.log(todo);
+};
+
+const deleteTodo = (index) => {
+  todos.splice(index, 1);
 };
 </script>
 
 <style>
 .errorMessage {
   color: red;
+}
+
+.completedTodo {
+  text-decoration: line-through;
+  color: gray;
 }
 </style>
