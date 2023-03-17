@@ -1,58 +1,53 @@
 <template>
-  <div class="container">
-    <h2>To-Do List</h2>
-    <input
-      class="form-control"
-      type="text"
-      v-model="searchText"
-      placeholder="Search your Todo"
-      @keyup.enter="searchTodo"
-    />
-    <hr />
-    <!-- 명시한 이벤트가 발생했을 때 실행 될 로직을 추가해준다. -->
-    <TodoSimpleForm @add-todo="addTodo" />
-    <div class="errorMessage">{{ error }}</div>
-    <div v-if="!todos.length" class="mt-2">표시할 Todo가 없습니다</div>
-    <TodoList
-      :todos="todos"
-      @toggle-todo="toggleTodo"
-      @delete-todo="deleteTodo"
-    />
-    <hr />
-    <nav aria-label="Page navigation example">
-      <ul class="pagination">
-        <li class="page-item" v-if="currentPage !== 1">
-          <a
-            style="cursor: pointer"
-            class="page-link"
-            @click="getTodos(currentPage - 1)"
-            >Previous</a
-          >
-        </li>
-        <li
-          class="page-item"
-          :class="currentPage === page ? 'active' : ''"
-          v-for="page in totalPages"
-          :key="page"
+  <h2>To-Do List</h2>
+  <input
+    class="form-control"
+    type="text"
+    v-model="searchText"
+    placeholder="Search your Todo"
+    @keyup.enter="searchTodo"
+  />
+  <hr />
+  <!-- 명시한 이벤트가 발생했을 때 실행 될 로직을 추가해준다. -->
+  <TodoSimpleForm @add-todo="addTodo" />
+  <div class="errorMessage">{{ error }}</div>
+  <div v-if="!todos.length" class="mt-2">표시할 Todo가 없습니다</div>
+  <TodoList
+    :todos="todos"
+    @toggle-todo="toggleTodo"
+    @delete-todo="deleteTodo"
+  />
+  <hr />
+  <nav aria-label="Page navigation example">
+    <ul class="pagination">
+      <li class="page-item" v-if="currentPage !== 1">
+        <a
+          style="cursor: pointer"
+          class="page-link"
+          @click="getTodos(currentPage - 1)"
+          >Previous</a
         >
-          <a
-            style="cursor: pointer"
-            class="page-link"
-            @click="getTodos(page)"
-            >{{ page }}</a
-          >
-        </li>
-        <li class="page-item" v-if="currentPage !== totalPages">
-          <a
-            style="cursor: pointer"
-            class="page-link"
-            @click="getTodos(currentPage + 1)"
-            >Next</a
-          >
-        </li>
-      </ul>
-    </nav>
-  </div>
+      </li>
+      <li
+        class="page-item"
+        :class="currentPage === page ? 'active' : ''"
+        v-for="page in totalPages"
+        :key="page"
+      >
+        <a style="cursor: pointer" class="page-link" @click="getTodos(page)">{{
+          page
+        }}</a>
+      </li>
+      <li class="page-item" v-if="currentPage !== totalPages">
+        <a
+          style="cursor: pointer"
+          class="page-link"
+          @click="getTodos(currentPage + 1)"
+          >Next</a
+        >
+      </li>
+    </ul>
+  </nav>
 </template>
 
 <script setup>
@@ -120,12 +115,12 @@ const addTodo = async (todo) => {
   }
 };
 
-const toggleTodo = async (index) => {
+const toggleTodo = async (index, checked) => {
   error.value = "";
   try {
     const id = todos.value[index].id;
     await axios.patch(`http://localhost:3000/todos/${id}`, {
-      completed: !todos.value[index].completed,
+      completed: checked,
     });
     getTodos();
   } catch (err) {
