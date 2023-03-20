@@ -1,5 +1,8 @@
 <template>
-  <h2>To-Do List</h2>
+  <div class="d-flex justify-content-between mb-2 mt-2">
+    <h2>To-Do List</h2>
+    <button class="btn btn-primary" @click="createTodo">Create Todo</button>
+  </div>
   <input
     class="form-control"
     type="text"
@@ -9,52 +12,62 @@
   />
   <hr />
   <!-- 명시한 이벤트가 발생했을 때 실행 될 로직을 추가해준다. -->
-  <TodoSimpleForm @add-todo="addTodo" />
-  <div class="errorMessage">{{ error }}</div>
   <div v-if="!todos.length" class="mt-2">표시할 Todo가 없습니다</div>
   <TodoList
     :todos="todos"
     @toggle-todo="toggleTodo"
     @delete-todo="deleteTodo"
   />
-  <hr />
-  <nav aria-label="Page navigation example">
-    <ul class="pagination">
-      <li class="page-item" v-if="currentPage !== 1">
-        <a
-          style="cursor: pointer"
-          class="page-link"
-          @click="getTodos(currentPage - 1)"
-          >Previous</a
+  <div>
+    <hr />
+    <nav aria-label="Page navigation example">
+      <ul class="pagination">
+        <li class="page-item" v-if="currentPage !== 1">
+          <a
+            style="cursor: pointer"
+            class="page-link"
+            @click="getTodos(currentPage - 1)"
+            >Previous</a
+          >
+        </li>
+        <li
+          class="page-item"
+          :class="currentPage === page ? 'active' : ''"
+          v-for="page in totalPages"
+          :key="page"
         >
-      </li>
-      <li
-        class="page-item"
-        :class="currentPage === page ? 'active' : ''"
-        v-for="page in totalPages"
-        :key="page"
-      >
-        <a style="cursor: pointer" class="page-link" @click="getTodos(page)">{{
-          page
-        }}</a>
-      </li>
-      <li class="page-item" v-if="currentPage !== totalPages">
-        <a
-          style="cursor: pointer"
-          class="page-link"
-          @click="getTodos(currentPage + 1)"
-          >Next</a
-        >
-      </li>
-    </ul>
-  </nav>
+          <a
+            style="cursor: pointer"
+            class="page-link"
+            @click="getTodos(page)"
+            >{{ page }}</a
+          >
+        </li>
+        <li class="page-item" v-if="currentPage !== totalPages">
+          <a
+            style="cursor: pointer"
+            class="page-link"
+            @click="getTodos(currentPage + 1)"
+            >Next</a
+          >
+        </li>
+      </ul>
+    </nav>
+  </div>
+  <Toast
+    v-show="showToast"
+    :toast-message="toastMessage"
+    :toastAlertType="toastAlertType"
+  />
 </template>
 
 <script setup>
 import { computed, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import axios from "axios";
-import TodoSimpleForm from "../../components/TodoSimpleForm.vue";
 import TodoList from "../../components/TodoList.vue";
+import Toast from "../../components/Toast.vue";
+import { useToast } from "@/composables/useToast";
 
 const todos = ref([]);
 const searchText = ref("");
@@ -62,6 +75,8 @@ const error = ref("");
 const totalTodos = ref(0);
 const currentPage = ref(1);
 const limit = 5;
+const { showToast, toastAlertType, toastMessage, triggerToast } = useToast();
+const router = useRouter();
 
 // 내부에 있는 Reactive 값이 변할 때마다 새로 업데이트 되도록 computed를 사용.
 const totalPages = computed(() => {
@@ -95,25 +110,25 @@ const getTodos = async (page = currentPage.value) => {
     todos.value = res.data;
   } catch (err) {
     console.log(err);
-    error.value = "Something Error";
+    triggerToast("Something went wrong", "danger");
   }
 };
 
 getTodos();
 
-const addTodo = async (todo) => {
-  error.value = "";
-  try {
-    await axios.post("http://localhost:3000/todos", {
-      subject: todo.subject,
-      completed: todo.completed,
-    });
-    getTodos();
-  } catch (err) {
-    console.log(err);
-    error.value = "Something Error";
-  }
-};
+// const addTodo = async (todo) => {
+//   error.value = "";
+//   try {
+//     await axios.post("http://localhost:3000/todos", {
+//       subject: todo.subject,
+//       completed: todo.completed,
+//     });
+//     getTodos();
+//   } catch (err) {
+//     console.log(err);
+//     triggerToast("Something went wrong", "danger");
+//   }
+// };
 
 const toggleTodo = async (index, checked) => {
   error.value = "";
@@ -125,7 +140,7 @@ const toggleTodo = async (index, checked) => {
     getTodos();
   } catch (err) {
     console.log(err);
-    error.value = "Something Error";
+    triggerToast("Something went wrong", "danger");
   }
 };
 
@@ -137,13 +152,13 @@ const deleteTodo = async (index) => {
     getTodos();
   } catch (err) {
     console.log(err);
-    error.value = "Something Error";
+    triggerToast("Something went wrong", "danger");
   }
+};
+
+const createTodo = () => {
+  router.push({ name: "TodoCreate" });
 };
 </script>
 
-<style>
-.errorMessage {
-  color: red;
-}
-</style>
+<style></style>
